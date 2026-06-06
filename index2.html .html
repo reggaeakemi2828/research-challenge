@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中古リサーチチャレンジ｜あけみ先生</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --or:#E8874A;--or2:#F0A060;--or3:#FDE8D8;--or4:#C05E25;
+  --ye:#FFF3E0;--gn:#639922;--gn2:#EAF3DE;
+  --bg:#FFF8F3;--surface:#ffffff;--surface2:#F7F2EE;
+  --text:#1C1A18;--text2:#6B6760;--text3:#A09D97;
+  --border:rgba(28,26,24,0.1);--radius:12px;
+}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ヘッダー */
+header{background:var(--or);color:#fff;padding:20px 20px 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(232,135,74,.3)}
+.header-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.header-tag{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.1em;opacity:.8;margin-bottom:3px}
+header h1{font-size:17px;font-weight:700}
+.total-stars{background:rgba(255,255,255,.2);border-radius:99px;padding:6px 14px;font-size:14px;font-weight:500;white-space:nowrap}
+
+/* 進捗バー */
+.progress-wrap{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px}
+.progress-inner{max-width:800px;margin:0 auto}
+.prog-label{font-size:12px;color:var(--text2);margin-bottom:6px;display:flex;justify-content:space-between}
+.prog-track{background:var(--surface2);border-radius:99px;height:8px;overflow:hidden}
+.prog-fill{height:8px;border-radius:99px;background:var(--or);transition:width .4s}
+
+/* ステージナビ */
+.stage-nav{display:flex;gap:6px;overflow-x:auto;padding:16px 20px;max-width:800px;margin:0 auto;-webkit-overflow-scrolling:touch}
+.snav-btn{font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;padding:7px 14px;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;display:flex;align-items:center;gap:5px}
+.snav-btn.active{background:var(--or);color:#fff;border-color:var(--or)}
+.snav-btn.done{background:var(--gn2);color:var(--gn);border-color:#C0DD97}
+
+/* メイン */
+main{max-width:800px;margin:0 auto;padding:20px 16px 80px}
+.panel{display:none}.panel.active{display:block}
+
+/* カード共通 */
+.card{background:var(--surface);border:1.5px solid var(--or2);border-radius:var(--radius);padding:1.25rem;margin-bottom:12px}
+.card-title{font-size:15px;font-weight:500;color:var(--text);margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--or3);color:var(--or4);font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-num.ck{background:var(--gn2);color:var(--gn)}
+.desc{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:1rem}
+.tip{background:var(--or3);border-left:4px solid var(--or);border-radius:0 var(--radius) var(--radius) 0;padding:.75rem 1rem;font-size:13px;color:var(--or4);margin-bottom:1rem;line-height:1.7}
+.mbox{background:var(--ye);border:1.5px dashed var(--or2);border-radius:var(--radius);padding:.75rem 1rem;font-size:13px;color:var(--text2);margin-bottom:1.5rem;line-height:1.6}
+.warn{background:#FFF8E1;border:1.5px solid #FFB74D;border-radius:var(--radius);padding:.75rem 1rem;font-size:13px;color:#E65100;margin-bottom:1rem;line-height:1.6}
+.new-badge{background:var(--ye);border:1px solid #FFB74D;border-radius:var(--radius);padding:.5rem 1rem;font-size:13px;color:#E65100;margin-bottom:.75rem}
+.ex{font-size:12px;color:var(--text3);margin-bottom:.75rem;line-height:1.8}
+.ex span{background:var(--or3);color:var(--or4);border-radius:99px;padding:2px 8px;font-size:12px;margin:2px;display:inline-block}
+
+/* 入力 */
+.input-row{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.plus{font-size:16px;color:var(--or);font-weight:500;flex-shrink:0}
+.ci,.cs{font-family:'Noto Sans JP',sans-serif;font-size:14px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);outline:none;flex:1;min-width:80px;transition:border-color .15s}
+.ci:focus,.cs:focus{border-color:var(--or)}
+.cs{cursor:pointer}
+.result-box{background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:14px;color:var(--text);min-height:36px;margin-bottom:8px;word-break:break-all}
+.ma{width:100%;min-height:70px;font-family:'Noto Sans JP',sans-serif;font-size:13px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);outline:none;resize:vertical;line-height:1.7;transition:border-color .15s;margin-top:8px}
+.ma:focus{border-color:var(--or)}
+.ta{width:100%;min-height:140px;font-family:'Noto Sans JP',sans-serif;font-size:13px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);outline:none;resize:vertical;line-height:1.8;transition:border-color .15s}
+.ta:focus{border-color:var(--or)}
+
+/* ボタン */
+.search-btn{font-family:'Noto Sans JP',sans-serif;font-size:13px;padding:7px 16px;border-radius:99px;border:none;background:var(--or);color:#fff;cursor:pointer;transition:transform .1s;margin-right:6px;margin-bottom:6px}
+.search-btn:active{transform:scale(.97)}
+.done-check{font-family:'Noto Sans JP',sans-serif;font-size:13px;padding:7px 16px;border-radius:99px;border:1.5px solid var(--or2);background:transparent;color:var(--or4);cursor:pointer;transition:background .15s;margin-bottom:6px}
+.done-check:hover{background:var(--or3)}
+.done-check.ck{background:var(--gn2);color:var(--gn);border-color:#C0DD97}
+.parse-btn{width:100%;margin-top:8px;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;padding:9px;border-radius:99px;border:none;background:var(--or);color:#fff;cursor:pointer;transition:transform .1s}
+.parse-btn:active{transform:scale(.97)}
+
+/* タグ */
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:32px}
+.tag{background:var(--or3);color:var(--or4);font-size:13px;padding:5px 12px;border-radius:99px;cursor:pointer;border:1px solid var(--or2);user-select:none;transition:background .15s}
+.tag:hover{background:var(--or2);color:#fff}
+.tag.ck{background:var(--gn2);color:var(--gn);border-color:#C0DD97;text-decoration:line-through;opacity:.65}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:.75rem}
+.cat-tag{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;text-align:center;font-size:13px;cursor:pointer;user-select:none;transition:background .15s;color:var(--text)}
+.cat-tag:hover{background:var(--or3);border-color:var(--or2);color:var(--or4)}
+.cat-tag.sel{background:var(--or3);border-color:var(--or);color:var(--or4);font-weight:500}
+.memo-count{font-size:12px;color:var(--text3);margin-top:4px;text-align:right}
+
+/* クリアボタン */
+.clear-wrap{text-align:center;margin-top:1.5rem}
+.clear-btn{font-family:'Noto Sans JP',sans-serif;font-size:15px;font-weight:700;padding:14px 40px;border-radius:99px;border:none;background:var(--or);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(232,135,74,.4);transition:transform .1s}
+.clear-btn:active{transform:scale(.97)}
+.clear-btn:disabled{background:var(--surface2);color:var(--text3);cursor:not-allowed;box-shadow:none}
+.clear-btn.gn{background:var(--gn);box-shadow:0 4px 16px rgba(99,153,34,.3)}
+.clear-hint{font-size:12px;color:var(--text3);margin-top:8px}
+
+/* 完了画面 */
+.congrats{background:var(--or);color:#fff;border-radius:var(--radius);padding:2rem;text-align:center;margin-bottom:1.5rem}
+.congrats-emoji{font-size:48px;margin-bottom:12px}
+.congrats h2{font-size:22px;font-weight:700;margin-bottom:8px}
+.congrats p{font-size:14px;opacity:.9}
+
+/* ステージヘッダー */
+.stage-header{margin-bottom:1.5rem}
+.stage-badge{display:inline-flex;align-items:center;gap:6px;background:var(--or3);color:var(--or4);font-size:12px;font-weight:500;padding:5px 14px;border-radius:99px;margin-bottom:.75rem;border:1.5px solid var(--or2)}
+.stage-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:.5rem}
+.stage-desc{font-size:14px;color:var(--text2);line-height:1.7}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="header-tag">あけみ先生の中古コース</div>
+      <h1>🛒 中古リサーチチャレンジ</h1>
+    </div>
+    <div class="total-stars" id="total-stars">★ 0 / 15</div>
+  </div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-inner">
+    <div class="prog-label">
+      <span id="prog-text">0 / 5 ステージクリア</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div style="max-width:800px;margin:0 auto">
+  <div class="stage-nav" id="stage-nav"></div>
+</div>
+
+<main>
+
+<!-- ステージ1 -->
+<div class="panel active" id="panel-0">
+  <div class="stage-header">
+    <div class="stage-badge">⭐ ステージ 1 / 5</div>
+    <div class="stage-title">AIでキーワードを量産しよう！</div>
+    <div class="stage-desc">まずはAIにキーワードを出してもらおう。左にAIが出したワードを貼り付けて、リサーチしながら右のメモ欄に「使えそう！」と思ったキーワードをどんどん書いてね😊</div>
+  </div>
+  <div class="tip"><strong>コピーして使えるプロンプト：</strong><br>「中古・古い・レトロのような古いものの言い換え形容詞を20個考えて。箇条書きにしてほしい！」<br><br><strong>応用版：</strong>「私はECサイト運営をしている。このワードの関連から実際に検索されている用語を派生して出して。パワーストーン、ヒーリング」</div>
+  <div class="mbox">🎯 <strong>ミッション：</strong>AIで出したキーワードを左に貼り付けて、自分でリサーチして見つけたキーワードを右に10個以上書いたらクリア！</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title" style="font-size:13px;color:var(--or4)">🤖 AIが出したキーワードを貼り付け</div>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:8px">AIの回答をそのままコピペしてね！</p>
+      <textarea class="ta" id="s1-paste" placeholder="ここにAIが出したキーワードをペーストしてね&#10;&#10;例：&#10;・レトロ&#10;・ビンテージ&#10;・アンティーク&#10;..."></textarea>
+      <button class="parse-btn" onclick="s1Parse()">✨ タグに変換する</button>
+      <div class="tags" id="s1-tags"><span style="font-size:12px;color:var(--text3)">キーワードを貼り付けてタグに変換してみよう！</span></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title" style="font-size:13px;color:var(--or4)">✏️ 自分で見つけたキーワードメモ</div>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:8px">リサーチして「これいいかも！」と思ったワードをメモしよう</p>
+      <textarea class="ta" id="s1-memo" placeholder="1行に1つずつメモしよう！&#10;&#10;例：&#10;昭和レトロ 置物&#10;平成マスコット&#10;ノスタルジック 雑貨&#10;..." oninput="s1UpdMemo()"></textarea>
+      <div class="memo-count" id="s1-cnt">0 ワード（10個でクリア！）</div>
+    </div>
+  </div>
+  <div class="clear-wrap">
+    <button class="clear-btn" id="s1-cb" onclick="clearStage(0)" disabled>🎉 できた！クリア</button>
+    <p class="clear-hint" id="s1-ch">右のメモ欄に10ワード以上書くとクリアできるよ！</p>
+  </div>
+</div>
+
+<!-- ステージ2 -->
+<div class="panel" id="panel-1">
+  <div class="stage-header">
+    <div class="stage-badge">⭐ ステージ 2 / 5</div>
+    <div class="stage-title">2ワード組み合わせでリサーチしよう！</div>
+    <div class="stage-desc">1ワードだけじゃなく、2ワード以上の組み合わせで検索するとライバルが少なく掘り出し物が見つかりやすくなるよ！4つのパターンを全部試してみてね😊</div>
+  </div>
+  <div class="mbox">🎯 <strong>ミッション：</strong>4つの組み合わせパターンを全部試してチェックしよう！</div>
+  <div id="s2-list"></div>
+  <div class="clear-wrap">
+    <button class="clear-btn" id="s2-cb" onclick="clearStage(1)" disabled>🎉 できた！クリア</button>
+    <p class="clear-hint" id="s2-ch">4つのパターンを全部チェックするとクリアできるよ！</p>
+  </div>
+</div>
+
+<!-- ステージ3 -->
+<div class="panel" id="panel-2">
+  <div class="stage-header">
+    <div class="stage-badge">⭐ ステージ 3 / 5</div>
+    <div class="stage-title">カスタム組み合わせでもっと広げよう！</div>
+    <div class="stage-desc">組み合わせは自由自在！「もの＋国」「時代＋アート」など、他の人がやっていない組み合わせを試すほど競合が少なく掘り出し物が見つかりやすくなるよ😊</div>
+  </div>
+  <div class="warn">⚠️ <strong>国を組み合わせる場合の注意：</strong>アメリカと敵対している国はNGです。<br>NGの国：イラン・ソ連・ペルシャ・北朝鮮・中国・ロシア・キューバ</div>
+  <div class="mbox">🎯 <strong>ミッション：</strong>4つのパターンを全部試してチェックしよう！</div>
+  <div id="s3-list"></div>
+  <div class="card">
+    <div class="card-title" style="font-size:14px">✨ 自由にカスタムしてみよう！（3ワードまでOK）</div>
+    <div class="input-row">
+      <input class="ci" id="s3f1" placeholder="ワード1" oninput="s3UpdFree()" />
+      <span class="plus">＋</span>
+      <input class="ci" id="s3f2" placeholder="ワード2" oninput="s3UpdFree()" />
+      <span class="plus">＋</span>
+      <input class="ci" id="s3f3" placeholder="ワード3（任意）" oninput="s3UpdFree()" />
+    </div>
+    <div class="result-box" id="s3-free-res">↑ 入力すると組み合わせが表示されるよ！</div>
+    <button class="search-btn" onclick="s3OpenFree()">🔍 メルカリで検索</button>
+    <textarea class="ma" id="s3-free-memo" placeholder="自由入力で見つけたワード・商品をメモしよう"></textarea>
+  </div>
+  <div class="clear-wrap">
+    <button class="clear-btn" id="s3-cb" onclick="clearStage(2)" disabled>🎉 できた！クリア</button>
+    <p class="clear-hint" id="s3-ch">4つのパターンを全部チェックするとクリアできるよ！</p>
+  </div>
+</div>
+
+<!-- ステージ4 -->
+<div class="panel" id="panel-3">
+  <div class="stage-header">
+    <div class="stage-badge">⭐ ステージ 4 / 5</div>
+    <div class="stage-title">材質・カテゴリで視野を広げよう！</div>
+    <div class="stage-desc">「自分ではいらない」「売れなさそう」と思ったものでも、コレクターがいれば高単価で売れることがあるよ！材質やカテゴリの視点でリサーチを広げてみよう😊</div>
+  </div>
+  <div class="tip">💡 <strong>ポイント：</strong>他の人がやっていないことをやるのが大事！AIに「こんな材質の中古品、他に何がある？」と聞いてみるのもおすすめ⭕️</div>
+  <div class="mbox">🎯 <strong>ミッション：</strong>材質リサーチとカテゴリリサーチを両方試してチェックしよう！</div>
+
+  <div class="card">
+    <div class="card-title"><span class="step-num" id="s4n0">1</span>材質 ＋ レトロワードでリサーチ</div>
+    <div class="ex">例：<span>金属 昭和レトロ</span><span>ステンレス ヴィンテージ</span><span>陶器 レトロ</span><span>ガラス アンティーク</span><span>ブリキ おもちゃ</span></div>
+    <div class="input-row">
+      <select class="cs" id="s4-mat" onchange="s4Upd(0)">
+        <option value="">材質を選ぶ</option>
+        <option>金属</option><option>ステンレス</option><option>鉄</option><option>銅</option><option>真鍮</option>
+        <option>陶器</option><option>磁器</option><option>ガラス</option><option>クリスタル</option>
+        <option>木製</option><option>竹製</option><option>籐製</option><option>ブリキ</option>
+        <option>アルミ</option><option>銀製</option><option>革製</option><option>布製</option>
+      </select>
+      <span class="plus">＋</span>
+      <select class="cs" id="s4-retro" onchange="s4Upd(0)">
+        <option value="">レトロワードを選ぶ</option>
+        <option>昭和レトロ</option><option>平成レトロ</option><option>ヴィンテージ</option><option>アンティーク</option>
+        <option>レトロ</option><option>当時物</option><option>年代物</option><option>レア</option><option>希少</option>
+      </select>
+    </div>
+    <div class="result-box" id="s4-res0">↑ 材質とレトロワードを選ぶと表示されるよ！</div>
+    <button class="search-btn" onclick="s4Search(0)">🔍 メルカリで検索</button>
+    <button class="done-check" id="s4c0" onclick="s4Tgl(0)">試した！チェック</button>
+    <textarea class="ma" id="s4m0" placeholder="見つけた商品・ワードをメモしよう"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="step-num" id="s4n1">2</span>カテゴリを広げてリサーチ</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:.75rem;line-height:1.6">おもちゃホビー以外にもたくさんカテゴリがあるよ！「おじさんターゲット」も狙い目😊</p>
+    <div class="cat-grid" id="s4-cats"></div>
+    <div class="input-row">
+      <select class="cs" id="s4-catsel" onchange="s4Upd(1)">
+        <option value="">カテゴリを選ぶ</option>
+      </select>
+      <span class="plus">＋</span>
+      <input class="ci" id="s4-catword" placeholder="例：昭和レトロ / レア" oninput="s4Upd(1)" />
+    </div>
+    <div class="result-box" id="s4-res1">↑ カテゴリとワードを入力すると表示されるよ！</div>
+    <button class="search-btn" onclick="s4Search(1)">🔍 メルカリで検索</button>
+    <button class="done-check" id="s4c1" onclick="s4Tgl(1)">試した！チェック</button>
+    <textarea class="ma" id="s4m1" placeholder="見つけた商品・カテゴリ・ワードをメモしよう"></textarea>
+  </div>
+
+  <div class="clear-wrap">
+    <button class="clear-btn" id="s4-cb" onclick="clearStage(3)" disabled>🎉 できた！クリア</button>
+    <p class="clear-hint" id="s4-ch">2つとも試してチェックするとクリアできるよ！</p>
+  </div>
+</div>
+
+<!-- ステージ5 -->
+<div class="panel" id="panel-4">
+  <div class="stage-header">
+    <div class="stage-badge">⭐ ステージ 5 / 5</div>
+    <div class="stage-title">カテゴリ×組み合わせで上級リサーチ！</div>
+    <div class="stage-desc">カテゴリに「時代・国・形容詞・もの」を組み合わせると、さらにニッチな市場を攻められるよ！このテクニックは中古だけでなく<strong>新品にも応用できる</strong>から覚えておいてね😊</div>
+  </div>
+  <div class="tip">🎵 <strong>新品にも使えるテク！</strong><br>「アウトドア 90年代 希少」「キッチン 北欧 レトロ」など、カテゴリ＋年代＋形容詞の組み合わせは新品リサーチでも効果的！</div>
+  <div class="mbox">🎯 <strong>ミッション：</strong>3つのパターンを全部試してチェックしよう！</div>
+
+  <div class="card">
+    <div class="card-title"><span class="step-num" id="s5n0">1</span>カテゴリ ＋ 年代 ＋ 形容詞</div>
+    <div class="new-badge">🎵 中古・新品どちらにも使えるテクニック！</div>
+    <div class="ex">例：<span>アウトドア 90年代 希少</span><span>キッチン 昭和 レトロ</span><span>釣り 平成 コレクター</span></div>
+    <div class="input-row">
+      <select class="cs" id="s5cat0" onchange="s5Upd(0)">
+        <option value="">カテゴリ</option>
+        <option>雑貨</option><option>キッチン</option><option>芸術品</option><option>小物</option><option>置物</option>
+        <option>家具</option><option>インテリア</option><option>ホビー</option><option>食器</option><option>工芸品</option>
+        <option>楽器</option><option>スポーツ</option><option>アウトドア</option><option>麻雀</option><option>釣り</option>
+        <option>カメラ</option><option>時計</option><option>文房具</option><option>古着</option><option>ミュージシャングッズ</option>
+      </select>
+      <span class="plus">＋</span>
+      <select class="cs" id="s5era0" onchange="s5Upd(0)">
+        <option value="">年代・時代</option>
+        <option>昭和</option><option>平成</option><option>大正</option>
+        <option>70年代</option><option>80年代</option><option>90年代</option><option>2000年代</option>
+        <option>昭和レトロ</option><option>平成レトロ</option>
+      </select>
+      <span class="plus">＋</span>
+      <select class="cs" id="s5adj0" onchange="s5Upd(0)">
+        <option value="">形容詞（任意）</option>
+        <option>希少</option><option>激レア</option><option>レア</option><option>コレクター</option>
+        <option>当時物</option><option>絶版</option><option>入手困難</option><option>プレミア</option>
+      </select>
+    </div>
+    <div class="result-box" id="s5-res0">↑ 選ぶと組み合わせが表示されるよ！</div>
+    <button class="search-btn" onclick="s5Search(0)">🔍 メルカリで検索</button>
+    <button class="done-check" id="s5c0" onclick="s5Tgl(0)">試した！チェック</button>
+    <textarea class="ma" id="s5m0" placeholder="見つけた商品・ワードをメモしよう"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="step-num" id="s5n1">2</span>カテゴリ ＋ 国・地域</div>
+    <div class="ex">例：<span>アウトドア アメリカ</span><span>キッチン 北欧</span><span>雑貨 韓国 レトロ</span><span>家具 アジアン</span></div>
+    <div class="input-row">
+      <select class="cs" id="s5cat1" onchange="s5Upd(1)">
+        <option value="">カテゴリ</option>
+        <option>雑貨</option><option>キッチン</option><option>小物</option><option>置物</option><option>家具</option>
+        <option>インテリア</option><option>食器</option><option>工芸品</option><option>楽器</option><option>スポーツ</option>
+        <option>アウトドア</option><option>麻雀</option><option>釣り</option><option>カメラ</option><option>古着</option>
+      </select>
+      <span class="plus">＋</span>
+      <select class="cs" id="s5ctry1" onchange="s5Upd(1)">
+        <option value="">国・地域</option>
+        <option>アメリカ</option><option>イギリス</option><option>フランス</option><option>ドイツ</option><option>イタリア</option>
+        <option>スペイン</option><option>北欧</option><option>スウェーデン</option><option>オランダ</option>
+        <option>オーストラリア</option><option>カナダ</option><option>韓国</option><option>台湾</option>
+        <option>タイ</option><option>インド</option><option>アジアン</option><option>ヨーロッパ</option>
+      </select>
+      <span class="plus">＋</span>
+      <input class="ci" id="s5w1" placeholder="形容詞（任意）例：レトロ" oninput="s5Upd(1)" />
+    </div>
+    <div class="result-box" id="s5-res1">↑ 選ぶと組み合わせが表示されるよ！</div>
+    <button class="search-btn" onclick="s5Search(1)">🔍 メルカリで検索</button>
+    <button class="done-check" id="s5c1" onclick="s5Tgl(1)">試した！チェック</button>
+    <textarea class="ma" id="s5m1" placeholder="見つけた商品・ワードをメモしよう"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="step-num" id="s5n2">3</span>自由に3ワード組み合わせ</div>
+    <div class="ex">例：<span>麻雀 昭和レトロ セット</span><span>釣り 70年代 希少</span><span>ミュージシャン グッズ ヴィンテージ</span></div>
+    <div class="input-row">
+      <input class="ci" id="s5w0a" placeholder="カテゴリ・もの" oninput="s5Upd(2)" />
+      <span class="plus">＋</span>
+      <input class="ci" id="s5w0b" placeholder="時代・国・形容詞" oninput="s5Upd(2)" />
+      <span class="plus">＋</span>
+      <input class="ci" id="s5w0c" placeholder="さらに追加（任意）" oninput="s5Upd(2)" />
+    </div>
+    <div class="result-box" id="s5-res2">↑ 入力すると組み合わせが表示されるよ！</div>
+    <button class="search-btn" onclick="s5Search(2)">🔍 メルカリで検索</button>
+    <button class="done-check" id="s5c2" onclick="s5Tgl(2)">試した！チェック</button>
+    <textarea class="ma" id="s5m2" placeholder="見つけた商品・ワードをメモしよう"></textarea>
+  </div>
+
+  <div class="congrats" id="congrats" style="display:none">
+    <div class="congrats-emoji">🎉</div>
+    <h2>全ステージクリア！</h2>
+    <p>おめでとうございます！あけみ先生認定リサーチャーです✨<br>学んだテクニックを使って、どんどんリサーチしてみてね！</p>
+  </div>
+
+  <div class="clear-wrap">
+    <button class="clear-btn" id="s5-cb" onclick="clearStage(4)" disabled>🎉 できた！クリア</button>
+    <p class="clear-hint" id="s5-ch">3つのパターンを全部チェックするとクリアできるよ！</p>
+  </div>
+</div>
+
+</main>
+
+<script>
+var K='rc_v1';
+var DEF={cleared:[],s1:{kws:[],ck:[],memo:''},s2:{ck:[],inp:{},memo:{}},s3:{ck:[],inp:{},memo:{},free:{w1:'',w2:'',w3:'',memo:''}},s4:{ck:[],inp:{},memo:{}},s5:{ck:[],inp:{},memo:{}}};
+var S=JSON.parse(localStorage.getItem(K)||JSON.stringify(DEF));
+function sv(){localStorage.setItem(K,JSON.stringify(S));}
+
+// =================== ナビ ===================
+var STAGE_NAMES=['AIキーワード','2ワード組み合わせ','カスタム組み合わせ','材質・カテゴリ','上級テク'];
+function renderNav(){
+  var nav=document.getElementById('stage-nav');
+  nav.innerHTML=STAGE_NAMES.map(function(n,i){
+    var done=S.cleared.indexOf(i)>=0;
+    var active=document.getElementById('panel-'+i).classList.contains('active');
+    return '<button class="snav-btn'+(done?' done':active?' active':'')+'" onclick="switchStage('+i+')">'+(done?'✓ ':'')+'ステージ'+(i+1)+'</button>';
+  }).join('');
+}
+function switchStage(i){
+  document.querySelectorAll('.panel').forEach(function(p,j){p.classList.toggle('active',j===i);});
+  renderNav();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateProgress(){
+  var n=S.cleared.length;
+  document.getElementById('prog-text').textContent=n+' / 5 ステージクリア';
+  document.getElementById('prog-pct').textContent=Math.round(n/5*100)+'%';
+  document.getElementById('prog-fill').style.width=(n/5*100)+'%';
+  document.getElementById('total-stars').textContent='★ '+(n*3)+' / 15';
+  if(n===5)document.getElementById('congrats').style.display='block';
+}
+
+// =================== クリア ===================
+function clearStage(i){
+  if(S.cleared.indexOf(i)<0)S.cleared.push(i);
+  sv();updateProgress();renderNav();
+  var cb=document.getElementById(['s1','s2','s3','s4','s5'][i]+'-cb');
+  cb.className='clear-btn gn';cb.disabled=true;
+  cb.textContent='✓ クリア済み！★★★';
+  var ch=document.getElementById(['s1','s2','s3','s4','s5'][i]+'-ch');
+  ch.textContent='おめでとうございます！'+(i<4?'ステージ'+(i+2)+'に進もう！':'全ステージ制覇！');
+  if(i<4)setTimeout(function(){switchStage(i+1);},1200);
+}
+
+// =================== ステージ1 ===================
+function s1Parse(){
+  var raw=document.getElementById('s1-paste').value;
+  var lines=raw.split(/[\n,、。・\t]/).map(function(l){return l.replace(/^[\s\-・*\d.]+/,'').trim();}).filter(function(l){return l.length>1&&l.length<20;});
+  S.s1.kws=[].concat.apply([],[lines]).filter(function(v,i,a){return a.indexOf(v)===i;});
+  S.s1.ck=[];sv();s1RenderTags();
+}
+function s1RenderTags(){
+  var w=document.getElementById('s1-tags');
+  if(!S.s1.kws.length){w.innerHTML='<span style="font-size:12px;color:var(--text3)">キーワードを貼り付けてタグに変換してみよう！</span>';return;}
+  w.innerHTML=S.s1.kws.map(function(k,i){return '<span class="tag'+(S.s1.ck.indexOf(i)>=0?' ck':'')+'" onclick="s1TglTag('+i+')">'+k+'</span>';}).join('');
+}
+function s1TglTag(i){var x=S.s1.ck.indexOf(i);if(x>=0)S.s1.ck.splice(x,1);else S.s1.ck.push(i);sv();s1RenderTags();}
+function s1UpdMemo(){
+  S.s1.memo=document.getElementById('s1-memo').value;sv();
+  var n=s1Cnt();document.getElementById('s1-cnt').textContent=n+' ワード（10個でクリア！）';
+  var btn=document.getElementById('s1-cb'),h=document.getElementById('s1-ch');
+  if(S.cleared.indexOf(0)>=0){btn.className='clear-btn gn';btn.disabled=true;btn.textContent='✓ クリア済み！★★★';h.textContent='おめでとうございます！';}
+  else if(n>=10){btn.disabled=false;h.textContent='10ワード達成！クリアボタンを押してね';}
+  else{btn.disabled=true;h.textContent='あと'+(10-n)+'ワード書いたらクリアできるよ！';}
+}
+function s1Cnt(){return document.getElementById('s1-memo').value.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>0;}).length;}
+
+// =================== ステージ2 ===================
+var S2_COMBOS=[
+  {title:'ステージ1のワード ＋ 中古ワード',ph:['例：ぬいぐるみ','例：昭和レトロ'],exs:['ぬいぐるみ 昭和レトロ','人形 ビンテージ','置物 当時物']},
+  {title:'形容詞 ＋ 形容詞でリサーチ',ph:['例：レア','例：ビンテージ'],exs:['レア ビンテージ','希少 アンティーク','激レア レトロ']},
+  {title:'もの ＋ 形容詞 / もの ＋ 時代でリサーチ',ph:['例：ぬいぐるみ','例：和風レトロ / 平成初期'],exs:['ぬいぐるみ 和風レトロ','ぬいぐるみ 懐かしい','マスコット 平成初期']},
+  {title:'○点セット ＋ 形容詞・名称・時代',ph:['例：3点セット','例：モダン / フィギア'],exs:['3点セット モダン','3点セット フィギア','3点セット 昭和レトログッズ']},
+];
+function s2Render(){
+  var list=document.getElementById('s2-list');list.innerHTML='';
+  S2_COMBOS.forEach(function(c,i){
+    var ck=S.s2.ck.indexOf(i)>=0;
+    var d=document.createElement('div');d.className='card';
+    d.innerHTML='<div class="card-title"><span class="step-num'+(ck?' ck':'')+'" id="s2n'+i+'">'+(ck?'✓':(i+1))+'</span>'+c.title+'</div>'
+      +'<div class="ex">例：'+c.exs.map(function(e){return '<span>'+e+'</span>';}).join('')+'</div>'
+      +'<div class="input-row"><input class="ci" placeholder="'+c.ph[0]+'" value="'+(S.s2.inp['a'+i]||'')+'" oninput="s2Inp('+i+',\'a\',this.value)" /><span class="plus">＋</span><input class="ci" placeholder="'+c.ph[1]+'" value="'+(S.s2.inp['b'+i]||'')+'" oninput="s2Inp('+i+',\'b\',this.value)" /></div>'
+      +'<div class="result-box" id="s2r'+i+'">'+s2Res(i)+'</div>'
+      +'<button class="search-btn" onclick="s2Search('+i+')">🔍 メルカリで検索</button>'
+      +'<button class="done-check'+(ck?' ck':'')+'" id="s2c'+i+'" onclick="s2Tgl('+i+')">'+(ck?'✓ チェック済み':'試した！チェック')+'</button>'
+      +'<textarea class="ma" placeholder="見つけた商品・ワードをメモしよう" oninput="(function(v){S.s2.memo['+i+']=v;sv();})(this.value)">'+( S.s2.memo[i]||'')+'</textarea>';
+    list.appendChild(d);
+  });
+}
+function s2Res(i){var a=(S.s2.inp['a'+i]||'').trim(),b=(S.s2.inp['b'+i]||'').trim(),p=[a,b].filter(function(x){return x;});return p.length?p.join(' '):'↑ 入力すると組み合わせが表示されるよ！';}
+function s2Inp(i,ab,v){S.s2.inp[ab+i]=v;sv();document.getElementById('s2r'+i).textContent=s2Res(i);}
+function s2Search(i){var q=s2Res(i);if(!q.startsWith('↑'))window.open('https://jp.mercari.com/search?keyword='+encodeURIComponent(q),'_blank');}
+function s2Tgl(i){var x=S.s2.ck.indexOf(i);if(x>=0)S.s2.ck.splice(x,1);else S.s2.ck.push(i);sv();s2Render();s2UpdClear();}
+function s2UpdClear(){
+  var n=S.s2.ck.length,btn=document.getElementById('s2-cb'),h=document.getElementById('s2-ch');
+  if(S.cleared.indexOf(1)>=0){btn.className='clear-btn gn';btn.disabled=true;btn.textContent='✓ クリア済み！★★★';h.textContent='おめでとうございます！';}
+  else if(n>=4){btn.disabled=false;h.textContent='全部チェックした！クリアボタンを押してね';}
+  else{btn.disabled=true;h.textContent='あと'+(4-n)+'パターンを試してチェックしよう！';}
+}
+
+// =================== ステージ3 ===================
+var COUNTRIES=['アメリカ','日本','イギリス','フランス','ドイツ','イタリア','スペイン','オランダ','ベルギー','スウェーデン','ノルウェー','デンマーク','フィンランド','スイス','オーストラリア','カナダ','メキシコ','韓国','台湾','タイ','ベトナム','インドネシア','マレーシア','シンガポール','フィリピン','インド','トルコ','エジプト','南アフリカ','北欧','アジアン','ヨーロッパ','西洋','東洋'];
+var S3_COMBOS=[
+  {title:'もの or 形容詞 ＋ 国（プルダウンで選択）',type:'country',ph:['例：プレミア おもちゃ'],exs:['プレミア アメリカ おもちゃ','レトロ 北欧','韓国 レトロ 雑貨']},
+  {title:'形容詞 ＋ もの（シンプル組み合わせ）',type:'normal',ph:['例：レトロ','例：風鈴'],exs:['レトロ 風鈴','レトロ 小物入れ','レトロ 収納箱']},
+  {title:'もの or 形容詞 ＋ セット・まとめ売り',type:'normal',ph:['例：レトロ 小物','例：3点セット / まとめ売り'],exs:['レトロ 小物 3点セット','ビンテージ まとめ売り']},
+  {title:'時代 ＋ アート・芸術',type:'normal',ph:['例：平成 / 昭和','例：アート / 芸術'],exs:['平成 アート','昭和 アート','昭和 芸術品']},
+];
+function s3Render(){
+  var list=document.getElementById('s3-list');list.innerHTML='';
+  S3_COMBOS.forEach(function(c,i){
+    var ck=S.s3.ck.indexOf(i)>=0;
+    var d=document.createElement('div');d.className='card';
+    var inputHtml;
+    if(c.type==='country'){
+      var opts=COUNTRIES.map(function(cn){return '<option value="'+cn+'"'+(S.s3.inp['b'+i]===cn?' selected':'')+'>'+cn+'</option>';}).join('');
+      inputHtml='<div class="input-row"><input class="ci" placeholder="'+c.ph[0]+'" value="'+(S.s3.inp['a'+i]||'')+'" oninput="s3Inp('+i+',\'a\',this.value)" /><span class="plus">＋</span><select class="cs" onchange="s3Inp('+i+',\'b\',this.value)"><option value="">国を選ぶ</option>'+opts+'</select></div>';
+    } else {
+      inputHtml='<div class="input-row"><input class="ci" placeholder="'+c.ph[0]+'" value="'+(S.s3.inp['a'+i]||'')+'" oninput="s3Inp('+i+',\'a\',this.value)" /><span class="plus">＋</span><input class="ci" placeholder="'+c.ph[1]+'" value="'+(S.s3.inp['b'+i]||'')+'" oninput="s3Inp('+i+',\'b\',this.value)" /></div>';
+    }
+    d.innerHTML='<div class="card-title"><span class="step-num'+(ck?' ck':'')+'" id="s3n'+i+'">'+(ck?'✓':(i+1))+'</span>'+c.title+'</div>'
+      +'<div class="ex">例：'+c.exs.map(function(e){return '<span>'+e+'</span>';}).join('')+'</div>'
+      +inputHtml
+      +'<div class="result-box" id="s3r'+i+'">'+s3Res(i)+'</div>'
+      +'<button class="search-btn" onclick="s3Search('+i+')">🔍 メルカリで検索</button>'
+      +'<button class="done-check'+(ck?' ck':'')+'" id="s3c'+i+'" onclick="s3Tgl('+i+')">'+(ck?'✓ チェック済み':'試した！チェック')+'</button>'
+      +'<textarea class="ma" placeholder="見つけた商品・ワードをメモしよう" oninput="(function(v){S.s3.memo['+i+']=v;sv();})(this.value)">'+( S.s3.memo[i]||'')+'</textarea>';
+    list.appendChild(d);
+  });
+}
+function s3Res(i){var a=(S.s3.inp['a'+i]||'').trim(),b=(S.s3.inp['b'+i]||'').trim(),p=[a,b].filter(function(x){return x;});return p.length?p.join(' '):'↑ 入力すると組み合わせが表示されるよ！';}
+function s3Inp(i,ab,v){S.s3.inp[ab+i]=v;sv();document.getElementById('s3r'+i).textContent=s3Res(i);}
+function s3Search(i){var q=s3Res(i);if(!q.startsWith('↑'))window.open('https://jp.mercari.com/search?keyword='+encodeURIComponent(q),'_blank');}
+function s3Tgl(i){var x=S.s3.ck.indexOf(i);if(x>=0)S.s3.ck.splice(x,1);else S.s3.ck.push(i);sv();s3Render();s3UpdClear();}
+function s3UpdClear(){
+  var n=S.s3.ck.length,btn=document.getElementById('s3-cb'),h=document.getElementById('s3-ch');
+  if(S.cleared.indexOf(2)>=0){btn.className='clear-btn gn';btn.disabled=true;btn.textContent='✓ クリア済み！★★★';h.textContent='おめでとうございます！';}
+  else if(n>=4){btn.disabled=false;h.textContent='全部チェックした！クリアボタンを押してね';}
+  else{btn.disabled=true;h.textContent='あと'+(4-n)+'パターンを試してチェックしよう！';}
+}
+function s3UpdFree(){
+  S.s3.free.w1=document.getElementById('s3f1').value;
+  S.s3.free.w2=document.getElementById('s3f2').value;
+  S.s3.free.w3=document.getElementById('s3f3').value;sv();
+  var p=[S.s3.free.w1,S.s3.free.w2,S.s3.free.w3].map(function(x){return x.trim();}).filter(function(x){return x;});
+  document.getElementById('s3-free-res').textContent=p.length?p.join(' '):'↑ 入力すると組み合わせが表示されるよ！';
+}
+function s3OpenFree(){var q=document.getElementById('s3-free-res').textContent;if(!q.startsWith('↑'))window.open('https://jp.mercari.com/search?keyword='+encodeURIComponent(q),'_blank');}
+
+// =================== ステージ4 ===================
+var S4_CATS=['雑貨','キッチン','芸術品','アート','小物','置物','家具','タレント','ホビー','インテリア','文房具','食器','工芸品','楽器','スポーツ','アウトドア','麻雀','釣り','カメラ','時計','ミュージシャングッズ','歌手グッズ','古着','バッグ','アクセサリー'];
+function s4InitCats(){
+  var g=document.getElementById('s4-cats');
+  var sel=document.getElementById('s4-catsel');
+  g.innerHTML=S4_CATS.map(function(c,i){return '<div class="cat-tag'+(S.s4.ck.indexOf('c'+i)>=0?' sel':'')+'" onclick="s4TglCat('+i+',\''+c+'\')">'+c+'</div>';}).join('');
+  sel.innerHTML='<option value="">カテゴリを選ぶ</option>'+S4_CATS.map(function(c){return '<option value="'+c+'"'+(S.s4.inp.catsel===c?' selected':'')+'>'+c+'</option>';}).join('');
+}
+function s4TglCat(i,name){
+  var key='c'+i,x=S.s4.ck.indexOf(key);if(x>=0)S.s4.ck.splice(x,1);else S.s4.ck.push(key);
+  S.s4.inp.catsel=name;sv();s4InitCats();s4Upd(1);
+}
+function s4Upd(i){
+  var res;
+  if(i===0){
+    var m=document.getElementById('s4-mat').value,r=document.getElementById('s4-retro').value;
+    S.s4.inp.mat=m;S.s4.inp.retro=r;
+    var p=[m,r].filter(function(x){return x;});
+    res=p.length?p.join(' '):'↑ 材質とレトロワードを選ぶと表示されるよ！';
+    document.getElementById('s4-res0').textContent=res;
+  } else {
+    var c=document.getElementById('s4-catsel').value,w=document.getElementById('s4-catword').value.trim();
+    S.s4.inp.catsel=c;S.s4.inp.catword=w;
+    var p=[c,w].filter(function(x){return x;});
+    res=p.length?p.join(' '):'↑ カテゴリとワードを入力すると表示されるよ！';
+    document.getElementById('s4-res1').textContent=res;
+  }
+  sv();
+}
+function s4Search(i){
+  var q=document.getElementById('s4-res'+i).textContent;
+  if(!q.startsWith('↑'))window.open('https://jp.mercari.com/search?keyword='+encodeURIComponent(q),'_blank');
+}
+function s4Tgl(i){
+  var x=S.s4.ck.indexOf(i);if(x>=0)S.s4.ck.splice(x,1);else S.s4.ck.push(i);sv();
+  [0,1].forEach(function(j){
+    var ck=S.s4.ck.indexOf(j)>=0;
+    document.getElementById('s4n'+j).className='step-num'+(ck?' ck':'');
+    document.getElementById('s4n'+j).textContent=ck?'✓':(j+1);
+    var btn=document.getElementById('s4c'+j);
+    btn.className='done-check'+(ck?' ck':'');
+    btn.textContent=ck?'✓ チェック済み':'試した！チェック';
+  });
+  s4UpdClear();
+}
+function s4UpdClear(){
+  var n=[0,1].filter(function(i){return S.s4.ck.indexOf(i)>=0;}).length;
+  var btn=document.getElementById('s4-cb'),h=document.getElementById('s4-ch');
+  if(S.cleared.indexOf(3)>=0){btn.className='clear-btn gn';btn.disabled=true;btn.textContent='✓ クリア済み！★★★';h.textContent='おめでとうございます！';}
+  else if(n>=2){btn.disabled=false;h.textContent='両方チェックした！クリアボタンを押してね';}
+  else{btn.disabled=true;h.textContent='あと'+(2-n)+'つ試してチェックしよう！';}
+}
+
+// =================== ステージ5 ===================
+function s5Upd(i){
+  var res;
+  if(i===0){
+    var p=[document.getElementById('s5cat0').value,document.getElementById('s5era0').value,document.getElementById('s5adj0').value].filter(function(x){return x;});
+    S.s5.inp.cat0=document.getElementById('s5cat0').value;S.s5.inp.era0=document.getElementById('s5era0').value;S.s5.inp.adj0=document.getElementById('s5adj0').value;
+    res=p.length?p.join(' '):'↑ 選ぶと組み合わせが表示されるよ！';
+  } else if(i===1){
+    var p=[document.getElementById('s5cat1').value,document.getElementById('s5ctry1').value,document.getElementById('s5w1').value.trim()].filter(function(x){return x;});
+    S.s5.inp.cat1=document.getElementById('s5cat1').value;S.s5.inp.ctry1=document.getElementById('s5ctry1').value;S.s5.inp.w1=document.getElementById('s5w1').value;
+    res=p.length?p.join(' '):'↑ 選ぶと組み合わせが表示されるよ！';
+  } else {
+    var p=[document.getElementById('s5w0a').value.trim(),document.getElementById('s5w0b').value.trim(),document.getElementById('s5w0c').value.trim()].filter(function(x){return x;});
+    S.s5.inp.w0a=document.getElementById('s5w0a').value;S.s5.inp.w0b=document.getElementById('s5w0b').value;S.s5.inp.w0c=document.getElementById('s5w0c').value;
+    res=p.length?p.join(' '):'↑ 入力すると組み合わせが表示されるよ！';
+  }
+  document.getElementById('s5-res'+i).textContent=res;sv();
+}
+function s5Search(i){var q=document.getElementById('s5-res'+i).textContent;if(!q.startsWith('↑'))window.open('https://jp.mercari.com/search?keyword='+encodeURIComponent(q),'_blank');}
+function s5Tgl(i){
+  var x=S.s5.ck.indexOf(i);if(x>=0)S.s5.ck.splice(x,1);else S.s5.ck.push(i);sv();
+  [0,1,2].forEach(function(j){
+    var ck=S.s5.ck.indexOf(j)>=0;
+    document.getElementById('s5n'+j).className='step-num'+(ck?' ck':'');
+    document.getElementById('s5n'+j).textContent=ck?'✓':(j+1);
+    var btn=document.getElementById('s5c'+j);
+    btn.className='done-check'+(ck?' ck':'');
+    btn.textContent=ck?'✓ チェック済み':'試した！チェック';
+  });
+  s5UpdClear();
+}
+function s5UpdClear(){
+  var n=[0,1,2].filter(function(i){return S.s5.ck.indexOf(i)>=0;}).length;
+  var btn=document.getElementById('s5-cb'),h=document.getElementById('s5-ch');
+  if(S.cleared.indexOf(4)>=0){btn.className='clear-btn gn';btn.disabled=true;btn.textContent='✓ クリア済み！★★★';h.textContent='おめでとうございます！全ステージ制覇！';}
+  else if(n>=3){btn.disabled=false;h.textContent='全部チェックした！クリアボタンを押してね';}
+  else{btn.disabled=true;h.textContent='あと'+(3-n)+'パターンを試してチェックしよう！';}
+}
+function s5SaveMemo(i,v){S.s5.memo[i]=v;sv();}
+
+// =================== 初期化 ===================
+(function init(){
+  // ステージ1
+  document.getElementById('s1-paste').value=S.s1.kws.join('\n');
+  document.getElementById('s1-memo').value=S.s1.memo;
+  s1RenderTags();s1UpdMemo();
+
+  // ステージ2
+  s2Render();s2UpdClear();
+
+  // ステージ3
+  s3Render();s3UpdClear();
+  document.getElementById('s3f1').value=S.s3.free.w1||'';
+  document.getElementById('s3f2').value=S.s3.free.w2||'';
+  document.getElementById('s3f3').value=S.s3.free.w3||'';
+  s3UpdFree();
+
+  // ステージ4
+  s4InitCats();
+  if(S.s4.inp.mat)document.getElementById('s4-mat').value=S.s4.inp.mat;
+  if(S.s4.inp.retro)document.getElementById('s4-retro').value=S.s4.inp.retro;
+  if(S.s4.inp.catword)document.getElementById('s4-catword').value=S.s4.inp.catword;
+  document.getElementById('s4m0').value=S.s4.memo[0]||'';
+  document.getElementById('s4m1').value=S.s4.memo[1]||'';
+  s4Upd(0);s4Upd(1);
+  [0,1].forEach(function(j){
+    var ck=S.s4.ck.indexOf(j)>=0;
+    document.getElementById('s4n'+j).className='step-num'+(ck?' ck':'');
+    document.getElementById('s4n'+j).textContent=ck?'✓':(j+1);
+    var btn=document.getElementById('s4c'+j);
+    btn.className='done-check'+(ck?' ck':'');
+    btn.textContent=ck?'✓ チェック済み':'試した！チェック';
+  });
+  s4UpdClear();
+
+  // ステージ5
+  if(S.s5.inp.cat0)document.getElementById('s5cat0').value=S.s5.inp.cat0;
+  if(S.s5.inp.era0)document.getElementById('s5era0').value=S.s5.inp.era0;
+  if(S.s5.inp.adj0)document.getElementById('s5adj0').value=S.s5.inp.adj0;
+  if(S.s5.inp.cat1)document.getElementById('s5cat1').value=S.s5.inp.cat1;
+  if(S.s5.inp.ctry1)document.getElementById('s5ctry1').value=S.s5.inp.ctry1;
+  if(S.s5.inp.w1)document.getElementById('s5w1').value=S.s5.inp.w1;
+  if(S.s5.inp.w0a)document.getElementById('s5w0a').value=S.s5.inp.w0a;
+  if(S.s5.inp.w0b)document.getElementById('s5w0b').value=S.s5.inp.w0b;
+  if(S.s5.inp.w0c)document.getElementById('s5w0c').value=S.s5.inp.w0c;
+  [0,1,2].forEach(function(i){
+    document.getElementById('s5m'+i).value=S.s5.memo[i]||'';
+    s5Upd(i);
+    var ck=S.s5.ck.indexOf(i)>=0;
+    document.getElementById('s5n'+i).className='step-num'+(ck?' ck':'');
+    document.getElementById('s5n'+i).textContent=ck?'✓':(i+1);
+    var btn=document.getElementById('s5c'+i);
+    btn.className='done-check'+(ck?' ck':'');
+    btn.textContent=ck?'✓ チェック済み':'試した！チェック';
+  });
+  s5UpdClear();
+  if(S.cleared.indexOf(4)>=0)document.getElementById('congrats').style.display='block';
+
+  // クリア済みステージのボタン更新
+  ['s1','s2','s3','s4','s5'].forEach(function(p,i){
+    if(S.cleared.indexOf(i)>=0){
+      var btn=document.getElementById(p+'-cb');
+      btn.className='clear-btn gn';btn.disabled=true;btn.textContent='✓ クリア済み！★★★';
+    }
+  });
+
+  renderNav();updateProgress();
+})();
+</script>
+</body>
+</html>
